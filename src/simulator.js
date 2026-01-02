@@ -73,12 +73,19 @@ export function runSlumpSimulation(settings, totalSpins = 2500) {
   
   history.push({ x: totalSpins, y: Math.floor(currentBalls * exchangeRate) });
 
+  // 期待値計算
+  const avgRUSHBalls = jackpotCounts > 0 ? (totalJackpotBalls - (jackpotCounts * firstBonus)) / jackpotCounts : 0;
+  const avgTotalBallsPerHit = firstBonus + avgRUSHBalls;
+  const expectedValuePerSpin = (hitProb * avgTotalBallsPerHit) - consumptionPerSpin;
+  const totalExpectedValue = Math.floor(expectedValuePerSpin * totalSpins * exchangeRate);
+
   return {
     history,
     stats: {
       maxCombo, jackpotCounts, totalJackpotBalls, maxJackpotBalls,
       avgCombo: jackpotCounts > 0 ? (totalComboCount / jackpotCounts).toFixed(1) : 0,
-      avgJackpotBalls: jackpotCounts > 0 ? Math.floor(totalJackpotBalls / jackpotCounts) : 0
+      avgJackpotBalls: jackpotCounts > 0 ? Math.floor(totalJackpotBalls / jackpotCounts) : 0,
+      totalExpectedValue
     }
   };
 }
