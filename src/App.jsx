@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"; // useEffectを追加
+import { useState, useEffect } from "react";
 import { runSlumpSimulation } from "./simulator";
 import ResultChart from "./ResultChart";
 import PieDist from "./PieDist";
@@ -13,7 +13,7 @@ const PRESETS = {
   },
   tokyoguru: {
     name: "P東京喰種",
-    hitProb: 399.9, // 319.7に修正
+    hitProb: 399.9, 
     rushRate: 51, 
     firstBonus: 1500,
     upperPayouts: [
@@ -53,11 +53,12 @@ export default function App() {
   const [upperPayouts, setUpperPayouts] = useState([{ balls: 1500, rate: 100 }]);
   const [result, setResult] = useState(null);
 
-  // スマホ判定用の状態
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 850);
+  // --- スマホ1列表示のためのレスポンシブ判定 ---
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 850);
+    handleResize(); // 初回判定
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
@@ -89,10 +90,6 @@ export default function App() {
   const calcTotal = (list) => list.reduce((sum, p) => sum + Number(p.rate || 0), 0);
 
   const handleSimulate = () => {
-    const totalRate = calcTotal(payouts);
-    const totalUpperRate = calcTotal(upperPayouts);
-    if (mode !== 2 && totalRate !== 100) { alert("通常RUSHの振り分けを100%にしてください"); return; }
-    if (mode !== 0 && totalUpperRate !== 100) { alert("上位LTの振り分けを100%にしてください"); return; }
     const data = runSlumpSimulation({ 
       hitProb, rushRate, firstBonus, border, exchangeRate,
       continueRate: mode === 2 ? 0 : continueRate,
@@ -105,7 +102,7 @@ export default function App() {
 
   const inputStyle = { width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ddd", fontSize: "15px", boxSizing: "border-box" };
   const labelStyle = { display: "block", fontSize: "12px", fontWeight: "bold", color: "#555", marginBottom: "4px" };
-  const cardStyle = { backgroundColor: "#fff", padding: "20px", borderRadius: "12px", boxShadow: "0 2px 8px rgba(0,0,0,0.05)", height: "100%", boxSizing: "border-box" };
+  const cardStyle = { backgroundColor: "#fff", padding: "20px", borderRadius: "12px", boxShadow: "0 2px 8px rgba(0,0,0,0.05)", boxSizing: "border-box" };
   const getBtnStyle = (active) => ({
     padding: "10px 15px", borderRadius: "20px", border: "none", cursor: "pointer", fontWeight: "bold", transition: "0.3s",
     background: active ? "#2c3e50" : "#eee", color: active ? "white" : "#666", flex: 1, fontSize: "11px"
@@ -116,7 +113,6 @@ export default function App() {
       <header style={{ textAlign: "center", marginBottom: "20px" }}>
         <h1 style={{ margin: 0, color: "#2c3e50", fontSize: "24px" }}>パチンコ収支シミュレーター</h1>
         <div style={{ marginTop: "15px", display: "flex", flexWrap: "wrap", gap: "8px", justifyContent: "center" }}>
-          <span style={{fontSize: "12px", width: "100%", color: "#888"}}>実在機種プリセットを適用:</span>
           {Object.keys(PRESETS).map(key => (
             <button key={key} onClick={() => applyPreset(key)} style={{padding: "6px 12px", borderRadius: "15px", border: "1px solid #ccc", background: "#fff", fontSize: "11px", cursor: "pointer"}}>
               {PRESETS[key].name}
@@ -130,14 +126,13 @@ export default function App() {
         </div>
       </header>
 
-      {/* グリッドレイアウトの修正箇所 */}
       <div style={{ 
         display: "grid", 
-        gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", // スマホなら1列、PCなら2列
+        gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", 
         gap: "15px", 
         marginBottom: "20px" 
       }}>
-        {/* 左カラム：基本スペック */}
+        {/* 左カラム */}
         <div style={cardStyle}>
           <h3 style={{ marginTop: 0, borderLeft: "4px solid #4CAF50", paddingLeft: "10px", fontSize: "16px", marginBottom: "15px" }}>基本スペック</h3>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
@@ -170,63 +165,54 @@ export default function App() {
           </div>
         </div>
 
-        {/* 右カラム：振り分け設定 */}
+        {/* 右カラム */}
         <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
           {mode !== 2 && (
             <div style={cardStyle}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
-                <h3 style={{ margin: 0, borderLeft: "4px solid #2196F3", paddingLeft: "10px", fontSize: "16px" }}>通常RUSH 振り分け</h3>
-                <span style={{ fontSize: "12px", fontWeight: "bold", color: calcTotal(payouts) === 100 ? "#28a745" : "#dc3545" }}>{calcTotal(payouts)}%</span>
-              </div>
-              <div style={{ maxHeight: "140px", overflowY: "auto" }}>
+              <h3 style={{ margin: "0 0 10px 0", borderLeft: "4px solid #2196F3", paddingLeft: "10px", fontSize: "16px" }}>通常RUSH 振り分け</h3>
+              <div style={{ maxHeight: "140px", overflowY: "auto", marginBottom: "10px" }}>
                 {payouts.map((p, i) => (
                   <div key={i} style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
                     <input type="number" value={p.balls} placeholder="玉" onChange={e => { const n = [...payouts]; n[i].balls = e.target.value; setPayouts(n) }} style={inputStyle} />
                     <input type="number" value={p.rate} placeholder="%" onChange={e => { const n = [...payouts]; n[i].rate = e.target.value; setPayouts(n) }} style={inputStyle} />
-                    <button onClick={() => removeRow(setPayouts, payouts, i)} style={{ border: "none", background: "none", color: "#ff4d4d" }}>×</button>
+                    <button onClick={() => removeRow(setPayouts, payouts, i)} style={{ color: "#ff4d4d", border: "none", background: "none" }}>×</button>
                   </div>
                 ))}
               </div>
-              <button onClick={() => addRow(setPayouts, payouts)} style={{ width: "100%", padding: "6px", border: "1px dashed #2196F3", borderRadius: "6px", background: "#f0f7ff", color: "#2196F3", fontSize: "12px", cursor: "pointer", marginBottom: "10px" }}>＋ 追加</button>
+              <button onClick={() => addRow(setPayouts, payouts)} style={{ width: "100%", padding: "6px", border: "1px dashed #2196F3", background: "#f0f7ff", color: "#2196F3", borderRadius: "6px", cursor: "pointer" }}>＋ 追加</button>
               <PieDist dist={payouts} />
             </div>
           )}
 
           {mode !== 0 && (
             <div style={{ ...cardStyle, border: "2px solid #9966FF" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
-                <h3 style={{ margin: 0, borderLeft: "4px solid #9966FF", paddingLeft: "10px", fontSize: "16px" }}>上位LT 振り分け</h3>
-                <span style={{ fontSize: "12px", fontWeight: "bold", color: calcTotal(upperPayouts) === 100 ? "#28a745" : "#dc3545" }}>{calcTotal(upperPayouts)}%</span>
-              </div>
-              <div style={{ maxHeight: "140px", overflowY: "auto" }}>
+              <h3 style={{ margin: "0 0 10px 0", borderLeft: "4px solid #9966FF", paddingLeft: "10px", fontSize: "16px" }}>上位LT 振り分け</h3>
+              <div style={{ maxHeight: "140px", overflowY: "auto", marginBottom: "10px" }}>
                 {upperPayouts.map((p, i) => (
                   <div key={i} style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
                     <input type="number" value={p.balls} placeholder="玉" onChange={e => { const n = [...upperPayouts]; n[i].balls = e.target.value; setUpperPayouts(n) }} style={{...inputStyle, borderColor: "#9966FF"}} />
                     <input type="number" value={p.rate} placeholder="%" onChange={e => { const n = [...upperPayouts]; n[i].rate = e.target.value; setUpperPayouts(n) }} style={{...inputStyle, borderColor: "#9966FF"}} />
-                    <button onClick={() => removeRow(setUpperPayouts, upperPayouts, i)} style={{ border: "none", background: "none", color: "#ff4d4d" }}>×</button>
+                    <button onClick={() => removeRow(setUpperPayouts, upperPayouts, i)} style={{ color: "#ff4d4d", border: "none", background: "none" }}>×</button>
                   </div>
                 ))}
               </div>
-              <button onClick={() => addRow(setUpperPayouts, upperPayouts)} style={{ width: "100%", padding: "6px", border: "1px dashed #9966FF", borderRadius: "6px", background: "#f9f6ff", color: "#9966FF", fontSize: "12px", cursor: "pointer", marginBottom: "10px" }}>＋ 追加</button>
+              <button onClick={() => addRow(setUpperPayouts, upperPayouts)} style={{ width: "100%", padding: "6px", border: "1px dashed #9966FF", background: "#f9f6ff", color: "#9966FF", borderRadius: "6px", cursor: "pointer" }}>＋ 追加</button>
               <PieDist dist={upperPayouts} />
             </div>
           )}
         </div>
       </div>
 
-      <button onClick={handleSimulate} style={{ width: "100%", padding: "15px", fontSize: "18px", fontWeight: "bold", borderRadius: "50px", border: "none", backgroundColor: "#2c3e50", color: "white", cursor: "pointer", boxShadow: "0 4px 15px rgba(0,0,0,0.1)", marginBottom: "30px" }}>シミュレーションを実行</button>
+      <button onClick={handleSimulate} style={{ width: "100%", padding: "15px", fontSize: "18px", fontWeight: "bold", borderRadius: "50px", border: "none", backgroundColor: "#2c3e50", color: "white", cursor: "pointer", marginBottom: "30px" }}>シミュレーションを実行</button>
 
-      {result && result.history && (
+      {result && (
         <div style={{ backgroundColor: "#fff", padding: "15px", borderRadius: "16px", boxShadow: "0 10px 25px rgba(0,0,0,0.05)" }}>
-          <h3 style={{ textAlign: "center", marginTop: 0, fontSize: "16px" }}>差玉収支スランプグラフ</h3>
           <ResultChart slumpData={result.history} />
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: "10px", marginTop: "20px", borderTop: "1px solid #eee", paddingTop: "15px" }}>
-             <div style={{textAlign:"center", background:"#f8f9fa", padding:"10px", borderRadius:"12px"}}><div style={{fontSize:"10px", color:"#7f8c8d"}}>初当たり</div><div style={{fontSize:"16px", fontWeight:"bold"}}>{result.stats.jackpotCounts}回</div></div>
-             <div style={{textAlign:"center", background:"#f8f9fa", padding:"10px", borderRadius:"12px"}}><div style={{fontSize:"10px", color:"#7f8c8d"}}>最大連チャン</div><div style={{fontSize:"16px", fontWeight:"bold", color:"#e74c3c"}}>{result.stats.maxCombo}連</div></div>
-             <div style={{textAlign:"center", background:"#f8f9fa", padding:"10px", borderRadius:"12px"}}><div style={{fontSize:"10px", color:"#7f8c8d"}}>最大獲得玉</div><div style={{fontSize:"16px", fontWeight:"bold", color:"#f39c12"}}>{result.stats.maxJackpotBalls.toLocaleString()}発</div></div>
-             <div style={{textAlign:"center", background:"#f8f9fa", padding:"10px", borderRadius:"12px"}}><div style={{fontSize:"10px", color:"#7f8c8d"}}>平均連チャン</div><div style={{fontSize:"16px", fontWeight:"bold"}}>{result.stats.avgCombo}連</div></div>
-             <div style={{textAlign:"center", background:"#f0f7ff", padding:"10px", borderRadius:"12px", border: "1px solid #3498db"}}><div style={{fontSize:"10px", color:"#3498db", fontWeight:"bold"}}>理論上の期待値</div><div style={{fontSize:"16px", fontWeight:"bold", color: result.stats.totalExpectedValue >= 0 ? "#3498db" : "#e74c3c"}}>{result.stats.totalExpectedValue.toLocaleString()}円</div></div>
-             <div style={{textAlign:"center", background:"#f8f9fa", padding:"10px", borderRadius:"12px"}}><div style={{fontSize:"10px", color:"#7f8c8d"}}>実収支結果</div><div style={{fontSize:"16px", fontWeight:"bold", color: result.history[result.history.length-1].y >= 0 ? "#3498db" : "#e74c3c"}}>{result.history[result.history.length-1].y.toLocaleString()}円</div></div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "10px", marginTop: "20px" }}>
+             <div style={{textAlign:"center", background:"#f8f9fa", padding:"10px", borderRadius:"12px"}}><div style={{fontSize:"10px"}}>初当たり</div><b>{result.stats.jackpotCounts}回</b></div>
+             <div style={{textAlign:"center", background:"#f8f9fa", padding:"10px", borderRadius:"12px"}}><div style={{fontSize:"10px"}}>最大連チャン</div><b style={{color:"#e74c3c"}}>{result.stats.maxCombo}連</b></div>
+             <div style={{textAlign:"center", background:"#f0f7ff", padding:"10px", borderRadius:"12px", border: "1px solid #3498db"}}><div style={{fontSize:"10px"}}>理論上の期待値</div><b style={{color: result.stats.totalExpectedValue >= 0 ? "#3498db" : "#e74c3c"}}>{result.stats.totalExpectedValue.toLocaleString()}円</b></div>
+             <div style={{textAlign:"center", background:"#f8f9fa", padding:"10px", borderRadius:"12px"}}><div style={{fontSize:"10px"}}>実収支結果</div><b>{result.history[result.history.length-1].y.toLocaleString()}円</b></div>
           </div>
         </div>
       )}
