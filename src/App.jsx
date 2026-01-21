@@ -3,7 +3,6 @@ import { runSlumpSimulation } from "./simulator";
 import ResultChart from "./ResultChart";
 import PieDist from "./PieDist";
 
-// 1. 機種プリセットデータ
 const PRESETS = {
   eva15: {
     name: "エヴァ15 未来への咆哮",
@@ -53,12 +52,11 @@ export default function App() {
   const [upperPayouts, setUpperPayouts] = useState([{ balls: 1500, rate: 100 }]);
   const [result, setResult] = useState(null);
 
-  // --- スマホ1列表示のためのレスポンシブ判定 ---
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 850);
-    handleResize(); // 初回判定
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
@@ -87,7 +85,6 @@ export default function App() {
 
   const addRow = (setter, list) => setter([...list, { balls: "", rate: "" }]);
   const removeRow = (setter, list, i) => setter(list.filter((_, idx) => idx !== i));
-  const calcTotal = (list) => list.reduce((sum, p) => sum + Number(p.rate || 0), 0);
 
   const handleSimulate = () => {
     const data = runSlumpSimulation({ 
@@ -100,42 +97,43 @@ export default function App() {
     setResult(data);
   };
 
-  const inputStyle = { width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ddd", fontSize: "15px", boxSizing: "border-box" };
+  const inputStyle = { width: "100%", padding: "12px", borderRadius: "8px", border: "1px solid #ddd", fontSize: "16px", boxSizing: "border-box" };
   const labelStyle = { display: "block", fontSize: "12px", fontWeight: "bold", color: "#555", marginBottom: "4px" };
-  const cardStyle = { backgroundColor: "#fff", padding: "20px", borderRadius: "12px", boxShadow: "0 2px 8px rgba(0,0,0,0.05)", boxSizing: "border-box" };
+  const cardStyle = { backgroundColor: "#fff", padding: isMobile ? "15px" : "20px", borderRadius: "12px", boxShadow: "0 2px 8px rgba(0,0,0,0.05)", boxSizing: "border-box" };
   const getBtnStyle = (active) => ({
-    padding: "10px 15px", borderRadius: "20px", border: "none", cursor: "pointer", fontWeight: "bold", transition: "0.3s",
-    background: active ? "#2c3e50" : "#eee", color: active ? "white" : "#666", flex: 1, fontSize: "11px"
+    padding: "10px", borderRadius: "20px", border: "none", cursor: "pointer", fontWeight: "bold", transition: "0.3s",
+    background: active ? "#2c3e50" : "#eee", color: active ? "white" : "#666", flex: 1, fontSize: "12px"
   });
 
   return (
-    <div style={{ padding: "15px", maxWidth: "1100px", margin: "0 auto", fontFamily: "sans-serif", backgroundColor: "#f8f9fa", minHeight: "100vh" }}>
+    <div style={{ padding: isMobile ? "10px" : "20px", maxWidth: "1100px", margin: "0 auto", fontFamily: "sans-serif", backgroundColor: "#f8f9fa", minHeight: "100vh" }}>
       <header style={{ textAlign: "center", marginBottom: "20px" }}>
-        <h1 style={{ margin: 0, color: "#2c3e50", fontSize: "24px" }}>パチンコ収支シミュレーター</h1>
-        <div style={{ marginTop: "15px", display: "flex", flexWrap: "wrap", gap: "8px", justifyContent: "center" }}>
+        <h1 style={{ margin: "0 0 10px 0", color: "#2c3e50", fontSize: isMobile ? "20px" : "24px" }}>パチンコ収支シミュレーター</h1>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", justifyContent: "center", marginBottom: "15px" }}>
           {Object.keys(PRESETS).map(key => (
             <button key={key} onClick={() => applyPreset(key)} style={{padding: "6px 12px", borderRadius: "15px", border: "1px solid #ccc", background: "#fff", fontSize: "11px", cursor: "pointer"}}>
               {PRESETS[key].name}
             </button>
           ))}
         </div>
-        <div style={{ marginTop: "20px", display: "flex", background: "#eee", padding: "5px", borderRadius: "30px", maxWidth: "600px", margin: "20px auto 0" }}>
+        <div style={{ display: "flex", background: "#eee", padding: "4px", borderRadius: "30px", maxWidth: "500px", margin: "0 auto" }}>
           <button onClick={() => setMode(0)} style={getBtnStyle(mode === 0)}>通常RUSH</button>
           <button onClick={() => setMode(1)} style={getBtnStyle(mode === 1)}>RUSH+LT</button>
           <button onClick={() => setMode(2)} style={getBtnStyle(mode === 2)}>LT直行</button>
         </div>
       </header>
 
+      {/* メインレイアウト：スマホ時は 1fr、PC時は 1fr 1fr */}
       <div style={{ 
         display: "grid", 
         gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", 
         gap: "15px", 
         marginBottom: "20px" 
       }}>
-        {/* 左カラム：基本スペック */}
+        {/* 基本スペック */}
         <div style={cardStyle}>
           <h3 style={{ marginTop: 0, borderLeft: "4px solid #4CAF50", paddingLeft: "10px", fontSize: "16px", marginBottom: "15px" }}>基本スペック</h3>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
             <div style={{ gridColumn: "span 2" }}>
               <label style={labelStyle}>初当たり確率 (1/x)</label>
               <input type="number" value={hitProb} onChange={e => setHitProb(e.target.value)} style={inputStyle} />
@@ -149,7 +147,7 @@ export default function App() {
               <div><label style={labelStyle}>通常RUSH継続 (%)</label><input type="number" value={continueRate} onChange={e => setContinueRate(e.target.value)} style={inputStyle} /></div>
             )}
             {mode !== 0 && (
-              <div style={{ gridColumn: "span 2", padding: "12px", backgroundColor: "#fdfbff", border: "1px solid #9966FF", borderRadius: "10px" }}>
+              <div style={{ gridColumn: "span 2", padding: "12px", backgroundColor: "#fdfbff", border: "1px solid #9966FF", borderRadius: "10px", marginTop: "5px" }}>
                 <label style={{ ...labelStyle, color: "#9966FF" }}>上位RUSH (LT) 設定</label>
                 <div style={{ display: "flex", gap: "10px" }}>
                   {mode === 1 && (
@@ -165,21 +163,21 @@ export default function App() {
           </div>
         </div>
 
-        {/* 右カラム：振り分け */}
+        {/* 振り分け設定 */}
         <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
           {mode !== 2 && (
             <div style={cardStyle}>
               <h3 style={{ margin: "0 0 10px 0", borderLeft: "4px solid #2196F3", paddingLeft: "10px", fontSize: "16px" }}>通常RUSH 振り分け</h3>
-              <div style={{ maxHeight: "140px", overflowY: "auto", marginBottom: "10px" }}>
+              <div style={{ marginBottom: "10px" }}>
                 {payouts.map((p, i) => (
                   <div key={i} style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
                     <input type="number" value={p.balls} placeholder="玉" onChange={e => { const n = [...payouts]; n[i].balls = e.target.value; setPayouts(n) }} style={inputStyle} />
                     <input type="number" value={p.rate} placeholder="%" onChange={e => { const n = [...payouts]; n[i].rate = e.target.value; setPayouts(n) }} style={inputStyle} />
-                    <button onClick={() => removeRow(setPayouts, payouts, i)} style={{ color: "#ff4d4d", border: "none", background: "none" }}>×</button>
+                    <button onClick={() => removeRow(setPayouts, payouts, i)} style={{ color: "#ff4d4d", border: "none", background: "none", fontSize: "20px" }}>×</button>
                   </div>
                 ))}
               </div>
-              <button onClick={() => addRow(setPayouts, payouts)} style={{ width: "100%", padding: "6px", border: "1px dashed #2196F3", background: "#f0f7ff", color: "#2196F3", borderRadius: "6px", cursor: "pointer" }}>＋ 追加</button>
+              <button onClick={() => addRow(setPayouts, payouts)} style={{ width: "100%", padding: "10px", border: "1px dashed #2196F3", background: "#f0f7ff", color: "#2196F3", borderRadius: "8px", cursor: "pointer", fontWeight: "bold" }}>＋ 追加</button>
               <PieDist dist={payouts} />
             </div>
           )}
@@ -187,69 +185,63 @@ export default function App() {
           {mode !== 0 && (
             <div style={{ ...cardStyle, border: "2px solid #9966FF" }}>
               <h3 style={{ margin: "0 0 10px 0", borderLeft: "4px solid #9966FF", paddingLeft: "10px", fontSize: "16px" }}>上位LT 振り分け</h3>
-              <div style={{ maxHeight: "140px", overflowY: "auto", marginBottom: "10px" }}>
+              <div style={{ marginBottom: "10px" }}>
                 {upperPayouts.map((p, i) => (
                   <div key={i} style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
                     <input type="number" value={p.balls} placeholder="玉" onChange={e => { const n = [...upperPayouts]; n[i].balls = e.target.value; setUpperPayouts(n) }} style={{...inputStyle, borderColor: "#9966FF"}} />
                     <input type="number" value={p.rate} placeholder="%" onChange={e => { const n = [...upperPayouts]; n[i].rate = e.target.value; setUpperPayouts(n) }} style={{...inputStyle, borderColor: "#9966FF"}} />
-                    <button onClick={() => removeRow(setUpperPayouts, upperPayouts, i)} style={{ color: "#ff4d4d", border: "none", background: "none" }}>×</button>
+                    <button onClick={() => removeRow(setUpperPayouts, upperPayouts, i)} style={{ color: "#ff4d4d", border: "none", background: "none", fontSize: "20px" }}>×</button>
                   </div>
                 ))}
               </div>
-              <button onClick={() => addRow(setUpperPayouts, upperPayouts)} style={{ width: "100%", padding: "6px", border: "1px dashed #9966FF", background: "#f9f6ff", color: "#9966FF", borderRadius: "6px", cursor: "pointer" }}>＋ 追加</button>
+              <button onClick={() => addRow(setUpperPayouts, upperPayouts)} style={{ width: "100%", padding: "10px", border: "1px dashed #9966FF", background: "#f9f6ff", color: "#9966FF", borderRadius: "8px", cursor: "pointer", fontWeight: "bold" }}>＋ 追加</button>
               <PieDist dist={upperPayouts} />
             </div>
           )}
         </div>
       </div>
 
-      <button onClick={handleSimulate} style={{ width: "100%", padding: "15px", fontSize: "18px", fontWeight: "bold", borderRadius: "50px", border: "none", backgroundColor: "#2c3e50", color: "white", cursor: "pointer", marginBottom: "30px" }}>シミュレーションを実行</button>
+      <button onClick={handleSimulate} style={{ width: "100%", padding: "18px", fontSize: "18px", fontWeight: "bold", borderRadius: "50px", border: "none", backgroundColor: "#2c3e50", color: "white", cursor: "pointer", marginBottom: "30px", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>シミュレーションを実行</button>
 
-      {/* 結果表示エリア */}
+      {/* 結果表示 */}
       {result && result.history && (
-        <div style={{ backgroundColor: "#fff", padding: "15px", borderRadius: "16px", boxShadow: "0 10px 25px rgba(0,0,0,0.05)" }}>
+        <div style={{ backgroundColor: "#fff", padding: isMobile ? "15px" : "20px", borderRadius: "16px", boxShadow: "0 10px 25px rgba(0,0,0,0.05)" }}>
           <h3 style={{ textAlign: "center", marginTop: 0, fontSize: "16px" }}>差玉収支スランプグラフ</h3>
           <ResultChart slumpData={result.history} />
           
           <div style={{ 
             display: "grid", 
-            gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", 
+            gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(auto-fit, minmax(140px, 1fr))", 
             gap: "10px", 
             marginTop: "20px", 
             borderTop: "1px solid #eee", 
             paddingTop: "15px" 
           }}>
-             <div style={{textAlign:"center", background:"#f8f9fa", padding:"10px", borderRadius:"12px"}}>
-               <div style={{fontSize:"10px", color:"#7f8c8d"}}>初当たり</div>
-               <div style={{fontSize:"16px", fontWeight:"bold"}}>{result.stats.jackpotCounts}回</div>
-             </div>
-             <div style={{textAlign:"center", background:"#f8f9fa", padding:"10px", borderRadius:"12px"}}>
-               <div style={{fontSize:"10px", color:"#7f8c8d"}}>最大連チャン</div>
-               <div style={{fontSize:"16px", fontWeight:"bold", color:"#e74c3c"}}>{result.stats.maxCombo}連</div>
-             </div>
-             <div style={{textAlign:"center", background:"#f8f9fa", padding:"10px", borderRadius:"12px"}}>
-               <div style={{fontSize:"10px", color:"#7f8c8d"}}>最大獲得玉</div>
-               <div style={{fontSize:"16px", fontWeight:"bold", color:"#f39c12"}}>{Number(result.stats.maxJackpotBalls).toLocaleString()}発</div>
-             </div>
-             <div style={{textAlign:"center", background:"#f8f9fa", padding:"10px", borderRadius:"12px"}}>
-               <div style={{fontSize:"10px", color:"#7f8c8d"}}>平均連チャン</div>
-               <div style={{fontSize:"16px", fontWeight:"bold"}}>{result.stats.avgCombo}連</div>
-             </div>
-             <div style={{textAlign:"center", background:"#f0f7ff", padding:"10px", borderRadius:"12px", border: "1px solid #3498db"}}>
-               <div style={{fontSize:"10px", color:"#3498db", fontWeight:"bold"}}>理論上の期待値</div>
-               <div style={{fontSize:"16px", fontWeight:"bold", color: result.stats.totalExpectedValue >= 0 ? "#3498db" : "#e74c3c"}}>
-                 {result.stats.totalExpectedValue.toLocaleString()}円
-               </div>
-             </div>
-             <div style={{textAlign:"center", background:"#f8f9fa", padding:"10px", borderRadius:"12px"}}>
-               <div style={{fontSize:"10px", color:"#7f8c8d"}}>実収支結果</div>
-               <div style={{fontSize:"16px", fontWeight:"bold", color: result.history[result.history.length-1].y >= 0 ? "#3498db" : "#e74c3c"}}>
-                 {result.history[result.history.length-1].y.toLocaleString()}円
-               </div>
-             </div>
+             <StatBox label="初当たり" value={`${result.stats.jackpotCounts}回`} />
+             <StatBox label="最大連チャン" value={`${result.stats.maxCombo}連`} color="#e74c3c" />
+             <StatBox label="最大獲得玉" value={`${Number(result.stats.maxJackpotBalls).toLocaleString()}発`} color="#f39c12" />
+             <StatBox label="平均連チャン" value={`${result.stats.avgCombo}連`} />
+             <StatBox label="期待値" value={`${result.stats.totalExpectedValue.toLocaleString()}円`} highlight color={result.stats.totalExpectedValue >= 0 ? "#3498db" : "#e74c3c"} />
+             <StatBox label="実収支" value={`${result.history[result.history.length-1].y.toLocaleString()}円`} color={result.history[result.history.length-1].y >= 0 ? "#3498db" : "#e74c3c"} />
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// 統計用ミニコンポーネント
+function StatBox({ label, value, color = "#2c3e50", highlight = false }) {
+  return (
+    <div style={{
+      textAlign: "center", 
+      background: highlight ? "#f0f7ff" : "#f8f9fa", 
+      padding: "12px 5px", 
+      borderRadius: "12px",
+      border: highlight ? "1px solid #3498db" : "none"
+    }}>
+      <div style={{ fontSize: "11px", color: "#7f8c8d", marginBottom: "4px" }}>{label}</div>
+      <div style={{ fontSize: "15px", fontWeight: "bold", color: color }}>{value}</div>
     </div>
   );
 }
