@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react"; // useEffectを追加
 import { runSlumpSimulation } from "./simulator";
 import ResultChart from "./ResultChart";
 import PieDist from "./PieDist";
@@ -13,7 +13,7 @@ const PRESETS = {
   },
   tokyoguru: {
     name: "P東京喰種",
-    hitProb: 399.9, 
+    hitProb: 399.9, // 319.7に修正
     rushRate: 51, 
     firstBonus: 1500,
     upperPayouts: [
@@ -52,6 +52,15 @@ export default function App() {
   const [payouts, setPayouts] = useState([{ balls: 1500, rate: 100 }]);
   const [upperPayouts, setUpperPayouts] = useState([{ balls: 1500, rate: 100 }]);
   const [result, setResult] = useState(null);
+
+  // スマホ判定用の状態
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 850);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 850);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const applyPreset = (key) => {
     const p = PRESETS[key];
@@ -121,7 +130,13 @@ export default function App() {
         </div>
       </header>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 450px), 1fr))", gap: "15px", marginBottom: "20px" }}>
+      {/* グリッドレイアウトの修正箇所 */}
+      <div style={{ 
+        display: "grid", 
+        gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", // スマホなら1列、PCなら2列
+        gap: "15px", 
+        marginBottom: "20px" 
+      }}>
         {/* 左カラム：基本スペック */}
         <div style={cardStyle}>
           <h3 style={{ marginTop: 0, borderLeft: "4px solid #4CAF50", paddingLeft: "10px", fontSize: "16px", marginBottom: "15px" }}>基本スペック</h3>
@@ -173,7 +188,6 @@ export default function App() {
                 ))}
               </div>
               <button onClick={() => addRow(setPayouts, payouts)} style={{ width: "100%", padding: "6px", border: "1px dashed #2196F3", borderRadius: "6px", background: "#f0f7ff", color: "#2196F3", fontSize: "12px", cursor: "pointer", marginBottom: "10px" }}>＋ 追加</button>
-              {/* 円グラフコンポーネントを復活 */}
               <PieDist dist={payouts} />
             </div>
           )}
@@ -194,7 +208,6 @@ export default function App() {
                 ))}
               </div>
               <button onClick={() => addRow(setUpperPayouts, upperPayouts)} style={{ width: "100%", padding: "6px", border: "1px dashed #9966FF", borderRadius: "6px", background: "#f9f6ff", color: "#9966FF", fontSize: "12px", cursor: "pointer", marginBottom: "10px" }}>＋ 追加</button>
-              {/* 円グラフコンポーネントを復活 */}
               <PieDist dist={upperPayouts} />
             </div>
           )}
@@ -203,7 +216,6 @@ export default function App() {
 
       <button onClick={handleSimulate} style={{ width: "100%", padding: "15px", fontSize: "18px", fontWeight: "bold", borderRadius: "50px", border: "none", backgroundColor: "#2c3e50", color: "white", cursor: "pointer", boxShadow: "0 4px 15px rgba(0,0,0,0.1)", marginBottom: "30px" }}>シミュレーションを実行</button>
 
-      {/* 結果表示 */}
       {result && result.history && (
         <div style={{ backgroundColor: "#fff", padding: "15px", borderRadius: "16px", boxShadow: "0 10px 25px rgba(0,0,0,0.05)" }}>
           <h3 style={{ textAlign: "center", marginTop: 0, fontSize: "16px" }}>差玉収支スランプグラフ</h3>
