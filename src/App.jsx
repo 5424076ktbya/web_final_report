@@ -94,7 +94,7 @@ export default function App() {
         input:focus { border-color: #3498db; }
 
         /* ボタン類 */
-        .preset-bar { display: flex; flex-wrap: wrap; gap: 8px; justifyContent: center; margin-bottom: 20px; }
+        .preset-bar { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 20px; }
         .btn-preset { padding: 6px 14px; border-radius: 20px; border: 1px solid #ddd; background: #fff; font-size: 11px; cursor: pointer; }
         .mode-switch { display: flex; background: #eee; padding: 4px; border-radius: 30px; max-width: 450px; margin: 0 auto 20px; }
         .btn-mode { flex: 1; padding: 10px; border-radius: 25px; border: none; cursor: pointer; font-weight: bold; font-size: 12px; background: transparent; color: #666; }
