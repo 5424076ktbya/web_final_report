@@ -132,7 +132,7 @@ export default function App() {
         gap: "15px", 
         marginBottom: "20px" 
       }}>
-        {/* 左カラム */}
+        {/* 左カラム：基本スペック */}
         <div style={cardStyle}>
           <h3 style={{ marginTop: 0, borderLeft: "4px solid #4CAF50", paddingLeft: "10px", fontSize: "16px", marginBottom: "15px" }}>基本スペック</h3>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
@@ -165,7 +165,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* 右カラム */}
+        {/* 右カラム：振り分け */}
         <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
           {mode !== 2 && (
             <div style={cardStyle}>
@@ -205,14 +205,48 @@ export default function App() {
 
       <button onClick={handleSimulate} style={{ width: "100%", padding: "15px", fontSize: "18px", fontWeight: "bold", borderRadius: "50px", border: "none", backgroundColor: "#2c3e50", color: "white", cursor: "pointer", marginBottom: "30px" }}>シミュレーションを実行</button>
 
-      {result && (
+      {/* 結果表示エリア */}
+      {result && result.history && (
         <div style={{ backgroundColor: "#fff", padding: "15px", borderRadius: "16px", boxShadow: "0 10px 25px rgba(0,0,0,0.05)" }}>
+          <h3 style={{ textAlign: "center", marginTop: 0, fontSize: "16px" }}>差玉収支スランプグラフ</h3>
           <ResultChart slumpData={result.history} />
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "10px", marginTop: "20px" }}>
-             <div style={{textAlign:"center", background:"#f8f9fa", padding:"10px", borderRadius:"12px"}}><div style={{fontSize:"10px"}}>初当たり</div><b>{result.stats.jackpotCounts}回</b></div>
-             <div style={{textAlign:"center", background:"#f8f9fa", padding:"10px", borderRadius:"12px"}}><div style={{fontSize:"10px"}}>最大連チャン</div><b style={{color:"#e74c3c"}}>{result.stats.maxCombo}連</b></div>
-             <div style={{textAlign:"center", background:"#f0f7ff", padding:"10px", borderRadius:"12px", border: "1px solid #3498db"}}><div style={{fontSize:"10px"}}>理論上の期待値</div><b style={{color: result.stats.totalExpectedValue >= 0 ? "#3498db" : "#e74c3c"}}>{result.stats.totalExpectedValue.toLocaleString()}円</b></div>
-             <div style={{textAlign:"center", background:"#f8f9fa", padding:"10px", borderRadius:"12px"}}><div style={{fontSize:"10px"}}>実収支結果</div><b>{result.history[result.history.length-1].y.toLocaleString()}円</b></div>
+          
+          <div style={{ 
+            display: "grid", 
+            gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", 
+            gap: "10px", 
+            marginTop: "20px", 
+            borderTop: "1px solid #eee", 
+            paddingTop: "15px" 
+          }}>
+             <div style={{textAlign:"center", background:"#f8f9fa", padding:"10px", borderRadius:"12px"}}>
+               <div style={{fontSize:"10px", color:"#7f8c8d"}}>初当たり</div>
+               <div style={{fontSize:"16px", fontWeight:"bold"}}>{result.stats.jackpotCounts}回</div>
+             </div>
+             <div style={{textAlign:"center", background:"#f8f9fa", padding:"10px", borderRadius:"12px"}}>
+               <div style={{fontSize:"10px", color:"#7f8c8d"}}>最大連チャン</div>
+               <div style={{fontSize:"16px", fontWeight:"bold", color:"#e74c3c"}}>{result.stats.maxCombo}連</div>
+             </div>
+             <div style={{textAlign:"center", background:"#f8f9fa", padding:"10px", borderRadius:"12px"}}>
+               <div style={{fontSize:"10px", color:"#7f8c8d"}}>最大獲得玉</div>
+               <div style={{fontSize:"16px", fontWeight:"bold", color:"#f39c12"}}>{Number(result.stats.maxJackpotBalls).toLocaleString()}発</div>
+             </div>
+             <div style={{textAlign:"center", background:"#f8f9fa", padding:"10px", borderRadius:"12px"}}>
+               <div style={{fontSize:"10px", color:"#7f8c8d"}}>平均連チャン</div>
+               <div style={{fontSize:"16px", fontWeight:"bold"}}>{result.stats.avgCombo}連</div>
+             </div>
+             <div style={{textAlign:"center", background:"#f0f7ff", padding:"10px", borderRadius:"12px", border: "1px solid #3498db"}}>
+               <div style={{fontSize:"10px", color:"#3498db", fontWeight:"bold"}}>理論上の期待値</div>
+               <div style={{fontSize:"16px", fontWeight:"bold", color: result.stats.totalExpectedValue >= 0 ? "#3498db" : "#e74c3c"}}>
+                 {result.stats.totalExpectedValue.toLocaleString()}円
+               </div>
+             </div>
+             <div style={{textAlign:"center", background:"#f8f9fa", padding:"10px", borderRadius:"12px"}}>
+               <div style={{fontSize:"10px", color:"#7f8c8d"}}>実収支結果</div>
+               <div style={{fontSize:"16px", fontWeight:"bold", color: result.history[result.history.length-1].y >= 0 ? "#3498db" : "#e74c3c"}}>
+                 {result.history[result.history.length-1].y.toLocaleString()}円
+               </div>
+             </div>
           </div>
         </div>
       )}
