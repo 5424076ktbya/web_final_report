@@ -52,13 +52,14 @@ export default function App() {
   const [upperPayouts, setUpperPayouts] = useState([{ balls: 1500, rate: 100 }]);
   const [result, setResult] = useState(null);
 
+  // --- 判定幅を少し広めの900pxに設定 ---
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    const checkMobile = () => setIsMobile(window.innerWidth < 900);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   const applyPreset = (key) => {
@@ -99,14 +100,14 @@ export default function App() {
 
   const inputStyle = { width: "100%", padding: "12px", borderRadius: "8px", border: "1px solid #ddd", fontSize: "16px", boxSizing: "border-box" };
   const labelStyle = { display: "block", fontSize: "12px", fontWeight: "bold", color: "#555", marginBottom: "4px" };
-  const cardStyle = { backgroundColor: "#fff", padding: isMobile ? "15px" : "20px", borderRadius: "12px", boxShadow: "0 2px 8px rgba(0,0,0,0.05)", boxSizing: "border-box" };
+  const cardStyle = { backgroundColor: "#fff", padding: isMobile ? "15px" : "20px", borderRadius: "12px", boxShadow: "0 2px 8px rgba(0,0,0,0.05)", boxSizing: "border-box", width: "100%" };
   const getBtnStyle = (active) => ({
     padding: "10px", borderRadius: "20px", border: "none", cursor: "pointer", fontWeight: "bold", transition: "0.3s",
     background: active ? "#2c3e50" : "#eee", color: active ? "white" : "#666", flex: 1, fontSize: "12px"
   });
 
   return (
-    <div style={{ padding: isMobile ? "10px" : "20px", maxWidth: "1100px", margin: "0 auto", fontFamily: "sans-serif", backgroundColor: "#f8f9fa", minHeight: "100vh" }}>
+    <div style={{ padding: isMobile ? "10px" : "15px", maxWidth: "1100px", margin: "0 auto", fontFamily: "sans-serif", backgroundColor: "#f8f9fa", minHeight: "100vh" }}>
       <header style={{ textAlign: "center", marginBottom: "20px" }}>
         <h1 style={{ margin: "0 0 10px 0", color: "#2c3e50", fontSize: isMobile ? "20px" : "24px" }}>パチンコ収支シミュレーター</h1>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", justifyContent: "center", marginBottom: "15px" }}>
@@ -123,17 +124,17 @@ export default function App() {
         </div>
       </header>
 
-      {/* メインレイアウト：スマホ時は 1fr、PC時は 1fr 1fr */}
+      {/* メインレイアウト：isMobileがtrueなら強制的に1列 */}
       <div style={{ 
         display: "grid", 
-        gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", 
-        gap: "15px", 
+        gridTemplateColumns: isMobile ? "minmax(0, 1fr)" : "1fr 1fr", 
+        gap: "20px", 
         marginBottom: "20px" 
       }}>
-        {/* 基本スペック */}
+        {/* 左カラム：基本スペック */}
         <div style={cardStyle}>
           <h3 style={{ marginTop: 0, borderLeft: "4px solid #4CAF50", paddingLeft: "10px", fontSize: "16px", marginBottom: "15px" }}>基本スペック</h3>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
             <div style={{ gridColumn: "span 2" }}>
               <label style={labelStyle}>初当たり確率 (1/x)</label>
               <input type="number" value={hitProb} onChange={e => setHitProb(e.target.value)} style={inputStyle} />
@@ -163,8 +164,8 @@ export default function App() {
           </div>
         </div>
 
-        {/* 振り分け設定 */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+        {/* 右カラム：振り分け（スマホ時はスペックの下に並ぶ） */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "15px", width: "100%" }}>
           {mode !== 2 && (
             <div style={cardStyle}>
               <h3 style={{ margin: "0 0 10px 0", borderLeft: "4px solid #2196F3", paddingLeft: "10px", fontSize: "16px" }}>通常RUSH 振り分け</h3>
@@ -203,7 +204,7 @@ export default function App() {
 
       <button onClick={handleSimulate} style={{ width: "100%", padding: "18px", fontSize: "18px", fontWeight: "bold", borderRadius: "50px", border: "none", backgroundColor: "#2c3e50", color: "white", cursor: "pointer", marginBottom: "30px", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>シミュレーションを実行</button>
 
-      {/* 結果表示 */}
+      {/* 結果表示（ここもスマホ時は縦1列を徹底） */}
       {result && result.history && (
         <div style={{ backgroundColor: "#fff", padding: isMobile ? "15px" : "20px", borderRadius: "16px", boxShadow: "0 10px 25px rgba(0,0,0,0.05)" }}>
           <h3 style={{ textAlign: "center", marginTop: 0, fontSize: "16px" }}>差玉収支スランプグラフ</h3>
@@ -211,7 +212,7 @@ export default function App() {
           
           <div style={{ 
             display: "grid", 
-            gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(auto-fit, minmax(140px, 1fr))", 
+            gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit, minmax(140px, 1fr))", 
             gap: "10px", 
             marginTop: "20px", 
             borderTop: "1px solid #eee", 
@@ -230,7 +231,6 @@ export default function App() {
   );
 }
 
-// 統計用ミニコンポーネント
 function StatBox({ label, value, color = "#2c3e50", highlight = false }) {
   return (
     <div style={{
@@ -241,7 +241,7 @@ function StatBox({ label, value, color = "#2c3e50", highlight = false }) {
       border: highlight ? "1px solid #3498db" : "none"
     }}>
       <div style={{ fontSize: "11px", color: "#7f8c8d", marginBottom: "4px" }}>{label}</div>
-      <div style={{ fontSize: "15px", fontWeight: "bold", color: color }}>{value}</div>
+      <div style={{ fontSize: "16px", fontWeight: "bold", color: color }}>{value}</div>
     </div>
   );
 }
