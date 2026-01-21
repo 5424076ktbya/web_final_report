@@ -36,11 +36,16 @@ export function runSlumpSimulation(settings, totalSpins = 2500) {
       jackpotCounts++;
       let currentCombo = 1;
       let currentSessionBalls = firstBonus;
-      let isUpperMode = false;
+
+      // 【修正ポイント】
+      // settings.continueRateが0（LT直行モード）かつ移行率100%の場合は、
+      // 最初の当たりから上位モード（isUpperMode = true）で開始する
+      let isUpperMode = (continueRate === 0 && ltEntryRate === 100);
       
       currentBalls += firstBonus;
       totalJackpotBalls += firstBonus;
 
+      // RUSH判定（直行タイプの場合はここがLT突入判定になる）
       if (Math.random() * 100 < rushRate) {
         let inRush = true;
         while (inRush && currentCombo < 1000) {
@@ -54,6 +59,7 @@ export function runSlumpSimulation(settings, totalSpins = 2500) {
             totalJackpotBalls += gain;
             currentSessionBalls += gain;
 
+            // 通常RUSH中にLT移行抽選
             if (!isUpperMode && Math.random() * 100 < ltEntryRate) {
               isUpperMode = true;
             }
@@ -73,7 +79,8 @@ export function runSlumpSimulation(settings, totalSpins = 2500) {
   
   history.push({ x: totalSpins, y: Math.floor(currentBalls * exchangeRate) });
 
-  // 期待値計算
+  // 期待値計算のロジック
+  // 期待値がマイナスになるのは、ボーダー(18)に対して当たりの平均出玉が不足しているためです
   const avgRUSHBalls = jackpotCounts > 0 ? (totalJackpotBalls - (jackpotCounts * firstBonus)) / jackpotCounts : 0;
   const avgTotalBallsPerHit = firstBonus + avgRUSHBalls;
   const expectedValuePerSpin = (hitProb * avgTotalBallsPerHit) - consumptionPerSpin;
